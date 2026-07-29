@@ -1,4 +1,5 @@
 const { createPass, verifyPass } = require('../services/passesService');
+const { dispatchInAppNotification } = require('../services/notificationService');
 
 function isValidDateString(value) {
   if (typeof value !== 'string') return false;
@@ -50,6 +51,7 @@ async function verifyPassHandler(req, res, next) {
       case 'EXPIRED':
         return res.status(409).json({ error: 'Pass has expired', pass });
       case 'VERIFIED':
+        dispatchInAppNotification({ event: 'PASS_VERIFIED', pass });
         return res.status(200).json({ message: 'Pass verified', pass });
       default:
         return next(new Error(`Unhandled verify result: ${result}`));
