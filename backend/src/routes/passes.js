@@ -1,6 +1,10 @@
 const express = require('express');
+const { createPassHandler } = require('../controllers/passesController');
+
 const router = express.Router();
 
-// POST /passes and POST /passes/verify are implemented in the next step.
+router.post('/', createPassHandler);
+
+// POST /passes/verify is implemented in the next step.
 
 module.exports = router;
