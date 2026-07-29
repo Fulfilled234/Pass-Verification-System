@@ -1,4 +1,4 @@
-const { createPass } = require('../services/passesService');
+const { createPass, verifyPass } = require('../services/passesService');
 
 function isValidDateString(value) {
   if (typeof value !== 'string') return false;
@@ -32,4 +32,31 @@ async function createPassHandler(req, res, next) {
   }
 }
 
-module.exports = { createPassHandler };
+async function verifyPassHandler(req, res, next) {
+  try {
+    const { code } = req.body || {};
+
+    if (!code || typeof code !== 'string' || !code.trim()) {
+      return res.status(400).json({ error: 'code is required' });
+    }
+
+    const { result, pass } = await verifyPass(code.trim().toUpperCase());
+
+    switch (result) {
+      case 'NOT_FOUND':
+        return res.status(404).json({ error: 'No pass found for this code' });
+      case 'ALREADY_USED':
+        return res.status(409).json({ error: 'Pass has already been used', pass });
+      case 'EXPIRED':
+        return res.status(409).json({ error: 'Pass has expired', pass });
+      case 'VERIFIED':
+        return res.status(200).json({ message: 'Pass verified', pass });
+      default:
+        return next(new Error(`Unhandled verify result: ${result}`));
+    }
+  } catch (err) {
+    return next(err);
+  }
+}
+
+module.exports = { createPassHandler, verifyPassHandler };
