@@ -8,8 +8,8 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "jest --runInBand",
-    "test:unit": "jest --runInBand tests/unit",
-    "test:integration": "jest --runInBand tests/integration",
+    "test:unit": "jest --selectProjects unit --runInBand",
+    "test:integration": "jest --selectProjects integration --runInBand",
     "migrate": "node src/db/migrate.js"
   },
   "dependencies": {
