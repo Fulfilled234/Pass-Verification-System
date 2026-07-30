@@ -1,0 +1,180 @@
+{
+  "info": {
+    "name": "Pass & Verification System",
+    "description": "Endpoints for the DecyfoTech Pass & Verification System technical practical.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "pass_code",
+      "value": "",
+      "type": "string",
+      "description": "Set automatically from the response of 'Create pass' by its test script."
+    }
+  ],
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Create pass",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const body = pm.response.json();",
+              "    pm.collectionVariables.set('pass_code', body.code);",
+              "}",
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "pm.test('Response has a code', () => pm.expect(pm.response.json().code).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"guest_name\": \"Ada Lovelace\",\n  \"host_reference\": \"Engineering Team\",\n  \"valid_date\": \"2099-01-01\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/passes",
+          "host": ["{{base_url}}"],
+          "path": ["passes"]
+        }
+      }
+    },
+    {
+      "name": "Create pass - missing field (400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"guest_name\": \"Ada Lovelace\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/passes",
+          "host": ["{{base_url}}"],
+          "path": ["passes"]
+        }
+      }
+    },
+    {
+      "name": "Verify pass - success (uses pass_code from Create pass)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Pass is USED', () => pm.expect(pm.response.json().pass.status).to.eql('USED'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"{{pass_code}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/passes/verify",
+          "host": ["{{base_url}}"],
+          "path": ["passes", "verify"]
+        }
+      }
+    },
+    {
+      "name": "Verify pass - already used (409, run after the above)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"{{pass_code}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/passes/verify",
+          "host": ["{{base_url}}"],
+          "path": ["passes", "verify"]
+        }
+      }
+    },
+    {
+      "name": "Verify pass - not found (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"NOTREAL1\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/passes/verify",
+          "host": ["{{base_url}}"],
+          "path": ["passes", "verify"]
+        }
+      }
+    },
+    {
+      "name": "Verify pass - missing code (400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/passes/verify",
+          "host": ["{{base_url}}"],
+          "path": ["passes", "verify"]
+        }
+      }
+    }
+  ]
+}
