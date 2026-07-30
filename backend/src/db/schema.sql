@@ -3,7 +3,13 @@
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-CREATE TYPE pass_status AS ENUM ('PENDING', 'USED', 'EXPIRED');
+-- CREATE TYPE has no IF NOT EXISTS in Postgres, so this is wrapped to make
+-- the migration safely re-runnable (e.g. on every deploy).
+DO $$ BEGIN
+  CREATE TYPE pass_status AS ENUM ('PENDING', 'USED', 'EXPIRED');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
 CREATE TABLE IF NOT EXISTS passes (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),

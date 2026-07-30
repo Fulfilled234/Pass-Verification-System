@@ -4,7 +4,7 @@ const passesRouter = require('./routes/passes');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }));
 app.use(express.json());
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
